@@ -1,6 +1,15 @@
 [![Tests](../../actions/workflows/tests-13-sprint.yml/badge.svg)](../../actions/workflows/tests-13-sprint.yml) [![Tests](../../actions/workflows/tests-14-sprint.yml/badge.svg)](../../actions/workflows/tests-14-sprint.yml)
 # Проект Mesto фронтенд + бэкенд
 
+Данная проектная работа создана в рамках учебного курса "Веб-разработчик" от "Яндекс Практикум".
+
+Проект демонстрирует знания и навыки, полученные входе изучения бэкэнд-разработки.
+В проектной работе применены следующие технологии:
+* *Node.js*
+* *Фреймворк express.js*:
+
+Ознакомиться с проектом можно [по ссылке](https://github.com/irinpingvin/express-mesto-gha).
+Отправлять запросы необходимо на http://localhost:3000 
 
 ## Директории
 
@@ -14,3 +23,4 @@
 
 `npm run start` — запускает сервер   
 `npm run dev` — запускает сервер с hot-reload
+`npm run lint` — запускает сервер с проверкой ESLint
