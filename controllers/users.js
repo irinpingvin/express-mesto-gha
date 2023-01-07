@@ -54,7 +54,7 @@ function createUser(req, res) {
 function updateUserProfile(req, res) {
   const { name, about } = req.body;
 
-  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true })
+  User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
@@ -74,7 +74,7 @@ function updateUserProfile(req, res) {
 function updateUserAvatar(req, res) {
   const { avatar } = req.body;
 
-  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
+  User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
