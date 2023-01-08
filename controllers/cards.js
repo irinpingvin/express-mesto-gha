@@ -3,20 +3,8 @@ const { VALIDATION_ERROR, NOT_FOUND_ERROR, DEFAULT_ERROR } = require('../utils/c
 
 function getCards(req, res) {
   Card.find({})
-    .then((cards) => {
-      if (!cards) {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Карточки не найдены' });
-      } else {
-        res.send(cards);
-      }
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(VALIDATION_ERROR).send({ message: 'Переданы некорректные данные в запросе' });
-      } else {
-        res.status(DEFAULT_ERROR).send({ message: 'Произошла ошибка при отправке запроса' });
-      }
-    });
+    .then((cards) => res.send(cards))
+    .catch(() => res.status(DEFAULT_ERROR).send({ message: 'Произошла ошибка при отправке запроса' }));
 }
 
 function createCard(req, res) {

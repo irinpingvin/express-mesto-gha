@@ -3,20 +3,8 @@ const { VALIDATION_ERROR, DEFAULT_ERROR, NOT_FOUND_ERROR } = require('../utils/c
 
 function getUsers(req, res) {
   User.find({})
-    .then((users) => {
-      if (!users) {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Пользователи не найдены' });
-      } else {
-        res.send(users);
-      }
-    })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(VALIDATION_ERROR).send({ message: 'Переданы некорректные данные в запросе' });
-      } else {
-        res.status(DEFAULT_ERROR).send({ message: 'Произошла ошибка при отправке запроса' });
-      }
-    });
+    .then((users) => res.send(users))
+    .catch(() => res.status(DEFAULT_ERROR).send({ message: 'Произошла ошибка при отправке запроса' }));
 }
 
 function getUserById(req, res) {
