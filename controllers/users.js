@@ -1,6 +1,7 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
-const { VALIDATION_ERROR, DEFAULT_ERROR, NOT_FOUND_ERROR } = require('../utils/constants');
+const jwt = require('jsonwebtoken');
+const { VALIDATION_ERROR, DEFAULT_ERROR, NOT_FOUND_ERROR, UNAUTHORIZED_ERROR } = require('../utils/constants');
 
 function getUsers(req, res) {
   User.find({})
@@ -81,6 +82,23 @@ function updateUserAvatar(req, res) {
     });
 }
 
+function login(req, res) {
+  const { email, password } = req.body;
+
+  User.findUserByCredentials(email, password)
+    .then((user) => {
+      const token = jwt.sign({ _id: user._id }, 'secret-key', { expiresIn: '7d' });
+      res.cookie('jwt', token, {
+        maxAge: 604800000,
+        httpOnly: true
+      });
+      res.send(token);
+    })
+    .catch(() => {
+      res.status(UNAUTHORIZED_ERROR).send({ message: 'Неверная почта или пароль' });
+    });
+}
+
 module.exports = {
-  getUsers, getUserById, createUser, updateUserProfile, updateUserAvatar,
+  getUsers, getUserById, createUser, updateUserProfile, updateUserAvatar, login,
 };
