@@ -2,6 +2,7 @@ const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { VALIDATION_ERROR, DEFAULT_ERROR, NOT_FOUND_ERROR, UNAUTHORIZED_ERROR } = require('../utils/constants');
+const { NODE_ENV, JWT_SECRET } = process.env;
 
 function getUsers(req, res) {
   User.find({})
@@ -87,7 +88,7 @@ function login(req, res) {
 
   User.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, 'secret-key', { expiresIn: '7d' });
+      const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
       res.cookie('jwt', token, {
         maxAge: 604800000,
         httpOnly: true
