@@ -21,12 +21,16 @@ function createCard(req, res) {
 }
 
 function deleteCard(req, res) {
-  Card.findByIdAndRemove(req.params.cardId)
+  Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
         res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемая карточка не найдена' });
+      }
+      if (String(card.owner) === req.user._id) {
+        Card.findByIdAndRemove(req.params.cardId)
+          .then((card) => res.send(card));
       } else {
-        res.send(card);
+        res.status(DEFAULT_ERROR).send({ message: 'Запрещено удалять карточки других пользователей' });
       }
     })
     .catch((err) => {
