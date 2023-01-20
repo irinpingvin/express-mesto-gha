@@ -1,89 +1,92 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { VALIDATION_ERROR, DEFAULT_ERROR, NOT_FOUND_ERROR, UNAUTHORIZED_ERROR } = require('../utils/constants');
+const NotFoundError = require("../errors/NotFoundError");
+const ValidationError = require("../errors/ValidationError");
+const UnauthorizedError = require("../errors/UnauthorizedError");
 const { NODE_ENV, JWT_SECRET } = process.env;
 
-function getUsers(req, res) {
+function getUsers(req, res, next) {
   User.find({})
     .then((users) => res.send(users))
-    .catch(() => res.status(DEFAULT_ERROR).send({ message: 'Произошла ошибка при отправке запроса' }));
+    .catch(next);
 }
 
-function getUserById(req, res) {
+function getUserById(req, res, next) {
   User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
+        throw new NotFoundError('Запрашиваемый пользователь не найден');
       } else {
         res.send(user);
       }
     })
-    .catch((err) => {
-      if (err.name === 'CastError') {
-        res.status(VALIDATION_ERROR).send({ message: 'Переданы некорректные данные в запросе' });
-      } else {
-        res.status(DEFAULT_ERROR).send({ message: 'Произошла ошибка при отправке запроса' });
-      }
-    });
+    .catch(next);
 }
 
-function createUser(req, res) {
+function createUser(req, res, next) {
   const { name, about, avatar, email, password } = req.body;
 
   bcrypt.hash(password, 10)
     .then(hash => User.create({ name, about, avatar, email, password: hash }))
     .then((user) => res.send(user))
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        res.status(VALIDATION_ERROR).send({ message: 'Переданы некорректные данные в запросе' });
+    .catch((e) => {
+      if (e.code === 11000) {
+        const err = new Error('Пользователь с таким email уже существует');
+        err.statusCode = 409;
+        next(err);
+      } else if (e.name === 'ValidationError') {
+        throw new ValidationError(e.message.replace('user validation failed: ', ''));
       } else {
-        res.status(DEFAULT_ERROR).send({ message: 'Произошла ошибка при отправке запроса' });
+        next(e);
       }
-    });
+    })
+    .catch(next);
 }
 
-function updateUserProfile(req, res) {
+function updateUserProfile(req, res, next) {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
+        throw new NotFoundError('Запрашиваемый пользователь не найден');
       } else {
         res.send(user);
       }
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(VALIDATION_ERROR).send({ message: 'Переданы некорректные данные в запросе' });
+        throw new ValidationError('Переданы некорректные данные в запросе');
       } else {
-        res.status(DEFAULT_ERROR).send({ message: 'Произошла ошибка при отправке запроса' });
+        next(err);
       }
-    });
+    })
+    .catch(next);
 }
 
-function updateUserAvatar(req, res) {
+function updateUserAvatar(req, res, next) {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { avatar }, { new: true, runValidators: true })
     .then((user) => {
       if (!user) {
-        res.status(NOT_FOUND_ERROR).send({ message: 'Запрашиваемый пользователь не найден' });
+        throw new NotFoundError('Запрашиваемый пользователь не найден');
       } else {
         res.send(user);
       }
     })
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        res.status(VALIDATION_ERROR).send({ message: 'Переданы некорректные данные в запросе' });
+        throw new ValidationError('Переданы некорректные данные в запросе');
       } else {
-        res.status(DEFAULT_ERROR).send({ message: 'Произошла ошибка при отправке запроса' });
+        next(err);
       }
-    });
+    })
+    .catch(next);
 }
 
-function login(req, res) {
+function login(req, res, next) {
   const { email, password } = req.body;
 
   User.findUserByCredentials(email, password)
@@ -96,8 +99,9 @@ function login(req, res) {
       res.send(token);
     })
     .catch(() => {
-      res.status(UNAUTHORIZED_ERROR).send({ message: 'Неверная почта или пароль' });
-    });
+      throw new UnauthorizedError('Неверная почта или пароль');
+    })
+    .catch(next);
 }
 
 module.exports = {
