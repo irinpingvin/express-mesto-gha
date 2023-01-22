@@ -1,6 +1,6 @@
 const Card = require('../models/card');
-const NotFoundError = require("../errors/NotFoundError");
-const ForbiddenError = require("../errors/ForbiddenError");
+const NotFoundError = require('../errors/NotFoundError');
+const ForbiddenError = require('../errors/ForbiddenError');
 
 function getCards(req, res, next) {
   Card.find({})
@@ -23,7 +23,7 @@ function deleteCard(req, res, next) {
       }
       if (String(card.owner) === req.user._id) {
         Card.findByIdAndRemove(req.params.cardId)
-          .then((card) => res.send(card));
+          .then(() => res.send(card));
       } else {
         throw new ForbiddenError('Запрещено удалять карточки других пользователей');
       }

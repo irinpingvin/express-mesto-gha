@@ -1,9 +1,10 @@
-const User = require('../models/user');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const NotFoundError = require("../errors/NotFoundError");
-const ValidationError = require("../errors/ValidationError");
-const UnauthorizedError = require("../errors/UnauthorizedError");
+const User = require('../models/user');
+const NotFoundError = require('../errors/NotFoundError');
+const ValidationError = require('../errors/ValidationError');
+const UnauthorizedError = require('../errors/UnauthorizedError');
+
 const { NODE_ENV, JWT_SECRET } = process.env;
 
 function getUsers(req, res, next) {
@@ -24,11 +25,27 @@ function getUserById(req, res, next) {
     .catch(next);
 }
 
+function getCurrentUser(req, res, next) {
+  User.findById(req.user._id)
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Запрашиваемый пользователь не найден');
+      } else {
+        res.send(user);
+      }
+    })
+    .catch(next);
+}
+
 function createUser(req, res, next) {
-  const { name, about, avatar, email, password } = req.body;
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
 
   bcrypt.hash(password, 10)
-    .then(hash => User.create({ name, about, avatar, email, password: hash }))
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    }))
     .then((user) => res.send(user))
     .catch((e) => {
       if (e.code === 11000) {
@@ -94,7 +111,7 @@ function login(req, res, next) {
       const token = jwt.sign({ _id: user._id }, NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret', { expiresIn: '7d' });
       res.cookie('jwt', token, {
         maxAge: 604800000,
-        httpOnly: true
+        httpOnly: true,
       });
       res.send(token);
     })
@@ -105,5 +122,5 @@ function login(req, res, next) {
 }
 
 module.exports = {
-  getUsers, getUserById, createUser, updateUserProfile, updateUserAvatar, login,
+  getUsers, getUserById, getCurrentUser, createUser, updateUserProfile, updateUserAvatar, login,
 };
