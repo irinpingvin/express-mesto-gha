@@ -46,7 +46,9 @@ function createUser(req, res, next) {
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
-    .then((user) => res.send(user))
+    .then((user) => res.send({
+      name: user.name, about: user.about, avatar: user.avatar, email: user.email, _id: user._id,
+    }))
     .catch((e) => {
       if (e.code === 11000) {
         const err = new Error('Пользователь с таким email уже существует');
@@ -113,7 +115,7 @@ function login(req, res, next) {
         maxAge: 604800000,
         httpOnly: true,
       });
-      res.send(token);
+      res.send({ token });
     })
     .catch(() => {
       throw new UnauthorizedError('Неверная почта или пароль');
