@@ -1,6 +1,7 @@
 const Card = require('../models/card');
 const NotFoundError = require('../errors/NotFoundError');
 const ForbiddenError = require('../errors/ForbiddenError');
+const ValidationError = require('../errors/ValidationError');
 
 function getCards(req, res, next) {
   Card.find({})
@@ -12,6 +13,13 @@ function createCard(req, res, next) {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user._id })
     .then((card) => res.send(card))
+    .catch((e) => {
+      if (e.name === 'ValidationError') {
+        throw new ValidationError(e.message.replace('card validation failed: ', ''));
+      } else {
+        next(e);
+      }
+    })
     .catch(next);
 }
 
